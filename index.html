@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Doha Center — Premium Online Shopping Store</title>
+    <meta name="description" content="Shop quality household products, clothing, children's items, furniture and more from Doha Center. Everything You Need, All in One Place.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Libraries: GSAP, Canvas Confetti -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#0099cc',
+                            blueDark: '#007aa3',
+                            red: '#cc0000',
+                            redDark: '#a30000',
+                            light: '#f4f7f9'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        urdu: ['"Noto Nastaliq Urdu"', 'serif'],
+                    },
+                    boxShadow: {
+                        'ios': '0 4px 24px rgba(0,0,0,0.06)',
+                        'ios-lg': '0 10px 40px rgba(0,0,0,0.08)',
+                        'float': '0 20px 40px rgba(0,0,0,0.1)',
+                    },
+                    animation: {
+                        'marquee': 'marquee 25s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        marquee: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(-100%)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-15px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base & iOS Styling */
+        :root { --safe-area-inset-bottom: env(safe-area-inset-bottom); }
+        
+        body {
+            -webkit-tap-highlight-color: transparent;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+            background-color: #f4f7f9;
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .glass-card {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .glass-card:hover {
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+            transform: translateY(-5px);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Typography */
+        [dir="rtl"] { font-family: 'Noto Nastaliq Urdu', serif; line-height: 2; }
+        [dir="rtl"] .font-sans { font-family: 'Noto Nastaliq Urdu', serif; }
+        [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3 { line-height: 1.8; }
+        [dir="rtl"] .price-text { font-family: 'Inter', sans-serif; direction: ltr; display: inline-block; }
+
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* Loader */
+        #loader {
+            position: fixed; inset: 0; background: #ffffff; z-index: 99999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s;
+        }
+        .loader-ring {
+            width: 80px; height: 80px; border: 4px solid #f3f3f3;
+            border-top: 4px solid #0099cc; border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* View Transitions */
+        .view-section { display: none; opacity: 0; }
+        .view-section.active { display: block; animation: fadeInView 0.5s ease-out forwards; }
+        @keyframes fadeInView { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Product Image Hover */
+        .product-img-wrap img { transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .group:hover .product-img-wrap img { transform: scale(1.1); }
+        
+        .quick-add-btn {
+            position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0;
+        }
+        .group:hover .quick-add-btn { bottom: 15px; opacity: 1; }
+
+        /* Header Scroll Effect */
+        header.scrolled { padding-top: 0.5rem; padding-bottom: 0.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="text-gray-900 antialiased font-sans" dir="ltr">
+
+    <!-- Loading Screen (Will stay active until Firebase loads data) -->
+    <div id="loader">
+        <div class="loader-ring mb-6"></div>
+        <h2 class="text-2xl font-black tracking-widest text-gray-800 animate-pulse">DOHA CENTER</h2>
+        <p class="text-sm text-gray-400 mt-2" id="loader-text">Loading latest store data...</p>
+    </div>
+
+    <!-- Announcement Ticker -->
+    <div class="bg-gray-900 text-white text-[11px] md:text-xs py-1.5 overflow-hidden flex items-center relative z-50">
+        <div class="w-full whitespace-nowrap animate-marquee flex gap-10">
+            <span data-en="🔥 Best Prices Guaranteed on All Household Items!" data-ur="🔥 تمام گھریلو اشیاء پر بہترین قیمتوں کی ضمانت!">🔥 Best Prices Guaranteed on All Household Items!</span>
+            <span data-en="✨ Premium Quality Products Guaranteed" data-ur="✨ اعلیٰ معیار کی مصنوعات کی ضمانت">✨ Premium Quality Products Guaranteed</span>
+            <span data-en="📞 24/7 Customer Support Available" data-ur="📞 24/7 کسٹمر سپورٹ دستیاب ہے">📞 24/7 Customer Support Available</span>
+        </div>
+    </div>
+
+    <!-- Top Info Bar -->
+    <div class="bg-brand-blue text-white text-xs py-2 px-4 flex justify-between items-center z-50 relative shadow-sm">
+        <div class="flex gap-4 items-center">
+            <a href="#" class="wa-link flex items-center gap-1.5 hover:text-gray-200 transition font-medium"><i class="ph-fill ph-whatsapp-logo text-lg"></i> <span id="top-phone"></span></a>
+        </div>
+        <div class="flex gap-3 items-center">
+            <button onclick="toggleLang()" id="lang-toggle" class="font-bold hover:bg-white hover:text-brand-blue transition px-3 py-1 bg-black/20 rounded-full text-[11px] uppercase tracking-wider">اردو</button>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header id="main-header" class="glass sticky top-0 z-40 px-4 py-4 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            
+            <a href="#" onclick="navTo('home')" class="flex items-center gap-3 group">
+                <!-- NEW LOGO LINK -->
+                <img src="https://files.catbox.moe/ybflgc.jpg" alt="Doha Center Logo" class="w-12 h-12 md:w-14 md:h-14 object-cover rounded-full shadow-md border-2 border-white transform group-hover:rotate-6 transition duration-500 bg-white">
+                <div class="flex flex-col">
+                    <span class="font-black text-xl md:text-2xl leading-none tracking-tighter">DOHA CENTER</span>
+                    <span class="text-brand-red text-sm font-urdu font-bold hidden md:block">دوحہ سنٹر</span>
+                </div>
+            </a>
+
+            <!-- Desktop Nav -->
+            <nav class="hidden md:flex gap-8 font-semibold text-sm">
+                <a href="#" onclick="navTo('home')" class="hover:text-brand-blue transition relative nav-link group" data-en="Home" data-ur="ہوم">Home<span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-blue transition-all group-hover:w-full"></span></a>
+                <a href="#" onclick="navTo('shop')" class="hover:text-brand-blue transition relative nav-link group" data-en="Shop" data-ur="شاپ">Shop<span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-blue transition-all group-hover:w-full"></span></a>
+                <a href="#" onclick="navTo('categories')" class="hover:text-brand-blue transition relative nav-link group" data-en="Categories" data-ur="اقسام">Categories<span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-blue transition-all group-hover:w-full"></span></a>
+                <a href="#" onclick="navTo('about')" class="hover:text-brand-blue transition relative nav-link group" data-en="About Us" data-ur="ہمارے بارے میں">About Us<span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-blue transition-all group-hover:w-full"></span></a>
+            </nav>
+
+            <!-- Icons -->
+            <div class="flex items-center gap-3 md:gap-5">
+                <button onclick="toggleSearch()" class="p-2 hover:bg-gray-100 rounded-full transition"><i class="ph ph-magnifying-glass text-xl md:text-2xl"></i></button>
+                <button onclick="toggleCart()" class="p-2 bg-brand-blue text-white hover:bg-brand-blueDark rounded-full transition relative flex items-center gap-2 shadow-md px-4">
+                    <i class="ph ph-shopping-bag text-xl"></i>
+                    <span id="cart-count" class="font-bold text-sm">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div id="search-bar" class="hidden absolute top-full left-0 w-full bg-white shadow-ios p-4 border-t origin-top transform transition-all">
+            <div class="max-w-3xl mx-auto relative">
+                <i class="ph ph-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl"></i>
+                <input type="text" id="searchInput" placeholder="Search products, categories..." class="w-full bg-gray-50 border border-gray-200 rounded-full py-3 pl-12 pr-10 focus:outline-none focus:ring-2 focus:ring-brand-blue transition shadow-inner">
+                <button onclick="toggleSearch()" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-brand-red"><i class="ph ph-x text-lg"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" class="min-h-screen pb-24 md:pb-0">
+        
+        <!-- ================= HOME VIEW ================= -->
+        <section id="view-home" class="view-section active">
+            
+            <!-- 1. Categories -->
+            <div class="pt-10 md:pt-14 pb-8 px-4 max-w-7xl mx-auto">
+                <div class="flex justify-between items-end mb-8" data-gsap="fade-up">
+                    <div>
+                        <h2 class="text-3xl md:text-4xl font-black text-gray-900 tracking-tight" data-en="Shop by Category" data-ur="اقسام کے لحاظ سے خریداری کریں">Shop by Category</h2>
+                        <div class="h-1.5 w-24 bg-brand-red mt-3 rounded-full"></div>
+                    </div>
+                    <button onclick="navTo('categories')" class="text-brand-blue font-bold hover:bg-blue-50 px-4 py-2 rounded-full transition flex items-center gap-1" data-en="View All" data-ur="سب دیکھیں">View All <i class="ph ph-arrow-right"></i></button>
+                </div>
+                <!-- Categories Grid Container -->
+                <div class="flex overflow-x-auto md:grid md:grid-cols-4 lg:grid-cols-6 gap-4 pb-6 no-scrollbar" id="home-categories-grid">
+                    <!-- Categories injected via JS -->
+                </div>
+            </div>
+
+            <!-- 2. Trending Products -->
+            <div class="py-10 pb-16 px-4 max-w-7xl mx-auto mb-6">
+                <div class="flex justify-between items-end mb-10" data-gsap="fade-up">
+                    <div>
+                        <h2 class="text-3xl md:text-4xl font-black text-gray-900 tracking-tight" data-en="Trending Now" data-ur="مقبول مصنوعات">Trending Now</h2>
+                        <div class="h-1.5 w-24 bg-brand-blue mt-3 rounded-full"></div>
+                    </div>
+                    <button onclick="navTo('shop')" class="text-brand-blue font-bold hover:bg-blue-50 px-4 py-2 rounded-full transition flex items-center gap-1" data-en="Explore All" data-ur="سب دیکھیں">Explore All <i class="ph ph-arrow-right"></i></button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8" id="featured-products-grid">
+                    <!-- Products injected via JS -->
+                </div>
+            </div>
+
+            <!-- 3. Description / System (Hero Section) -->
+            <div class="relative py-16 md:py-24 flex items-center justify-center overflow-hidden bg-white border-y border-gray-200 shadow-sm mt-8">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-transparent"></div>
+                
+                <div class="relative z-10 max-w-7xl mx-auto px-4 w-full flex flex-col md:flex-row items-center justify-between gap-12">
+                    <div class="max-w-2xl text-center md:text-start flex-1" data-gsap="fade-up">
+                        <div class="inline-block bg-white text-brand-blue font-bold px-4 py-1.5 rounded-full text-xs mb-6 border border-blue-100 uppercase tracking-widest shadow-sm" data-en="100% Quality Guaranteed" data-ur="100% معیار کی ضمانت">100% Quality Guaranteed</div>
+                        <h2 class="text-4xl md:text-6xl font-black text-gray-900 mb-4 tracking-tighter leading-tight">Elevate Your <br><span class="text-brand-blue">Lifestyle.</span></h2>
+                        <h3 class="text-xl md:text-3xl text-brand-red font-urdu font-bold mb-6" data-en="Everything You Need, All in One Place" data-ur="آپ کی روزمرہ ضرورت کی ہر چیز، ایک ہی جگہ">Everything You Need, All in One Place</h3>
+                        <p class="text-gray-500 mb-8 text-lg font-medium max-w-lg mx-auto md:mx-0" data-en="Shop premium quality household products, modern clothing, children's essentials, and elegant furniture at unbeatable prices." data-ur="اعلیٰ معیار کے گھریلو مصنوعات، کپڑے، بچوں کی اشیاء اور فرنیچر کی مناسب قیمتوں پر خریداری کریں۔">Shop premium quality household products, modern clothing, children's essentials, and elegant furniture at unbeatable prices.</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                            <a href="#" class="wa-link bg-green-500 text-white px-8 py-4 rounded-full font-bold shadow-lg hover:bg-green-600 transition-all flex items-center justify-center gap-2 transform hover:-translate-y-1">
+                                <i class="ph-fill ph-whatsapp-logo text-xl"></i> <span data-en="WHATSAPP ORDER" data-ur="واٹس ایپ آرڈر">WHATSAPP ORDER</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="w-full md:w-1/2 relative h-[400px] md:h-[450px] flex-1 hidden md:block" data-gsap="fade-up" data-delay="0.2">
+                        <div class="absolute inset-0 bg-brand-blue opacity-5 rounded-full blur-3xl"></div>
+                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80" alt="Furniture" class="animate-float rounded-3xl shadow-float absolute top-4 right-10 w-64 h-80 object-cover border-8 border-white z-20">
+                        <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=400&q=80" alt="Fashion" class="animate-float rounded-3xl shadow-ios absolute bottom-4 left-10 w-56 h-56 object-cover border-8 border-white z-30" style="animation-delay: -3s;">
+                        
+                        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/95 backdrop-blur p-4 rounded-2xl shadow-xl z-40 flex items-center gap-4 animate-float" style="animation-delay: -1.5s;">
+                            <div class="w-12 h-12 bg-brand-red rounded-full flex items-center justify-center text-white text-2xl"><i class="ph-fill ph-star"></i></div>
+                            <div>
+                                <p class="font-black text-gray-900 text-lg">Top Rated</p>
+                                <p class="text-xs text-gray-500">By 5000+ Customers</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trust Badges -->
+            <div class="bg-gray-50 py-8 border-b border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 flex flex-wrap justify-center md:justify-between gap-6 text-sm font-bold text-gray-700">
+                    <div class="flex items-center gap-2" data-gsap="fade-up" data-delay="0.1"><i class="ph ph-truck text-3xl text-brand-blue"></i> <span data-en="Fast Delivery" data-ur="تیز ڈلیوری">Fast Delivery</span></div>
+                    <div class="flex items-center gap-2" data-gsap="fade-up" data-delay="0.2"><i class="ph ph-shield-check text-3xl text-brand-blue"></i> <span data-en="Secure Payment" data-ur="محفوظ ادائیگی">Secure Payment</span></div>
+                    <div class="flex items-center gap-2" data-gsap="fade-up" data-delay="0.3"><i class="ph ph-arrow-u-up-left text-3xl text-brand-blue"></i> <span data-en="Easy Returns" data-ur="آسان واپسی">Easy Returns</span></div>
+                    <div class="flex items-center gap-2" data-gsap="fade-up" data-delay="0.4"><i class="ph ph-headset text-3xl text-brand-blue"></i> <span data-en="24/7 Support" data-ur="24/7 سپورٹ">24/7 Support</span></div>
+                </div>
+            </div>
+
+            <!-- 4. Promotional Banner -->
+            <div class="bg-gray-900 text-white py-16 px-6 relative overflow-hidden my-16 mx-4 md:mx-auto max-w-7xl rounded-3xl shadow-float" data-gsap="fade-up">
+                <div class="absolute inset-0 bg-brand-blue opacity-20 pointer-events-none mix-blend-overlay"></div>
+                <div class="absolute -top-20 -right-20 w-64 h-64 border-[30px] border-white/5 rounded-full"></div>
+                <div class="absolute -bottom-20 -left-20 w-80 h-80 border-[40px] border-brand-red/10 rounded-full"></div>
+                
+                <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-start">
+                    <div class="flex-1">
+                        <span class="text-brand-red font-bold tracking-widest uppercase text-sm mb-2 block" data-en="SPECIAL OFFER" data-ur="خصوصی پیشکش">SPECIAL OFFER</span>
+                        <h2 class="text-4xl md:text-5xl font-black mb-4 leading-tight" data-en="Everything You Need Under One Roof" data-ur="ہر قسم کی خریداری ایک ہی جگہ">Everything You Need Under One Roof</h2>
+                        <p class="text-lg text-gray-300 max-w-xl" data-en="Discover amazing deals on everyday items. Quality guaranteed." data-ur="روزمرہ کی اشیاء پر شاندار ڈیلز دریافت کریں۔ معیار کی ضمانت۔">Discover amazing deals on everyday items. Quality guaranteed.</p>
+                    </div>
+                    <button onclick="navTo('shop')" class="bg-white text-gray-900 px-10 py-4 rounded-full font-black shadow-lg hover:bg-brand-blue hover:text-white transition-all transform hover:scale-105 whitespace-nowrap text-lg">
+                        <span data-en="SHOP NOW" data-ur="ابھی شاپ کریں">SHOP NOW</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SHOP VIEW ================= -->
+        <section id="view-shop" class="view-section pt-8 px-4 max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div>
+                    <h1 class="text-3xl font-black text-gray-900 tracking-tight" data-en="Our Products" data-ur="ہماری مصنوعات">Our Products</h1>
+                    <p class="text-gray-500 mt-1 text-sm font-medium" id="shop-results-count">Showing results</p>
+                </div>
+                
+                <!-- Filters -->
+                <div class="flex flex-wrap gap-3 w-full md:w-auto">
+                    <div class="relative w-full md:w-auto">
+                        <i class="ph ph-funnel absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <select id="filter-category" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-8 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-blue appearance-none cursor-pointer" onchange="filterProducts()">
+                            <option value="all" data-en="All Categories" data-ur="تمام اقسام">All Categories</option>
+                            <!-- Injected via JS -->
+                        </select>
+                    </div>
+                    <div class="relative w-full md:w-auto">
+                        <i class="ph ph-sort-ascending absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <select id="sort-products" class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-8 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-blue appearance-none cursor-pointer" onchange="filterProducts()">
+                            <option value="newest" data-en="Sort: Newest" data-ur="ترتیب: نئی">Sort: Newest</option>
+                            <option value="price-low" data-en="Price: Low to High" data-ur="قیمت: کم سے زیادہ">Price: Low to High</option>
+                            <option value="price-high" data-en="Price: High to Low" data-ur="قیمت: زیادہ سے کم">Price: High to Low</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 pb-20" id="main-shop-grid">
+                <!-- Products -->
+            </div>
+        </section>
+
+        <!-- ================= CATEGORIES VIEW ================= -->
+        <section id="view-categories" class="view-section pt-10 px-4 max-w-7xl mx-auto pb-20">
+            <h1 class="text-4xl font-black text-center mb-4 tracking-tight" data-en="Browse Categories" data-ur="اقسام براؤز کریں">Browse Categories</h1>
+            <p class="text-center text-gray-500 mb-12" data-en="Find exactly what you are looking for." data-ur="بالکل وہی تلاش کریں جو آپ ڈھونڈ رہے ہیں۔">Find exactly what you are looking for.</p>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="full-categories-grid">
+                <!-- Categories -->
+            </div>
+        </section>
+
+        <!-- ================= ABOUT VIEW ================= -->
+        <section id="view-about" class="view-section pt-10 px-4 max-w-5xl mx-auto pb-20">
+            <div class="bg-white rounded-3xl p-8 md:p-16 shadow-ios border border-gray-100 text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-blue-50 to-white"></div>
+                
+                <!-- NEW LOGO LINK -->
+                <img src="https://files.catbox.moe/ybflgc.jpg" alt="Doha Center Logo" class="mx-auto mb-8 w-32 h-32 object-cover rounded-full shadow-lg border-4 border-white relative z-10">
+                
+                <h1 class="text-4xl md:text-5xl font-black mb-6 relative z-10" data-en="About Doha Center" data-ur="دوحہ سنٹر کے بارے میں">About Doha Center</h1>
+                
+                <div class="text-lg text-gray-600 leading-relaxed space-y-6 max-w-3xl mx-auto relative z-10">
+                    <p data-en="Doha Center is committed to providing customers with a wide range of useful and quality products under one roof. From household essentials and clothing to children's products and furniture, we strive to make shopping convenient and affordable." data-ur="دوحہ سنٹر کا مقصد صارفین کو ایک ہی جگہ پر معیاری اور روزمرہ استعمال کی مختلف اشیاء فراہم کرنا ہے۔ گھریلو ضروریات اور کپڑوں سے لے کر بچوں کی مصنوعات اور فرنیچر تک، ہم خریداری کو آسان اور سستا بنانے کی کوشش کرتے ہیں۔">
+                        Doha Center is committed to providing customers with a wide range of useful and quality products under one roof. From household essentials and clothing to children's products and furniture, we strive to make shopping convenient and affordable.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-16 border-t border-gray-100 relative z-10">
+                    <div><h3 class="text-4xl font-black text-brand-blue mb-2">1000+</h3><p class="text-sm text-gray-500 font-bold uppercase tracking-wider" data-en="Products" data-ur="مصنوعات">Products</p></div>
+                    <div><h3 class="text-4xl font-black text-brand-red mb-2">5000+</h3><p class="text-sm text-gray-500 font-bold uppercase tracking-wider" data-en="Customers" data-ur="صارفین">Customers</p></div>
+                    <div><h3 class="text-4xl font-black text-brand-blue mb-2">12+</h3><p class="text-sm text-gray-500 font-bold uppercase tracking-wider" data-en="Categories" data-ur="اقسام">Categories</p></div>
+                    <div><h3 class="text-4xl font-black text-brand-red mb-2">100%</h3><p class="text-sm text-gray-500 font-bold uppercase tracking-wider" data-en="Satisfaction" data-ur="اطمینان">Satisfaction</p></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Scroll to Top Button -->
+    <button onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" id="scrollToTop" class="fixed bottom-24 md:bottom-10 right-6 bg-gray-900 text-white w-12 h-12 rounded-full shadow-xl flex items-center justify-center z-40 transform translate-y-20 opacity-0 transition-all duration-300 hover:bg-brand-blue hover:scale-110">
+        <i class="ph ph-arrow-up text-xl"></i>
+    </button>
+
+    <!-- ================= PRODUCT DETAIL MODAL ================= -->
+    <div id="product-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onclick="closeProductModal()"></div>
+        <div class="absolute bottom-0 md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-[900px] h-[90vh] md:h-auto max-h-[90vh] bg-white md:rounded-3xl rounded-t-3xl shadow-2xl flex flex-col overflow-hidden transform transition-transform duration-300 translate-y-full" id="product-modal-content">
+            
+            <div class="flex justify-between items-center p-5 border-b shrink-0 bg-white z-10 sticky top-0">
+                <h3 class="font-bold text-xl truncate pr-4 text-gray-800" id="modal-p-title">Product Details</h3>
+                <button onclick="closeProductModal()" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 hover:rotate-90 transition-all text-gray-600"><i class="ph ph-x text-xl"></i></button>
+            </div>
+            
+            <div class="overflow-y-auto p-5 md:p-8 flex-1 bg-white no-scrollbar">
+                <div class="grid md:grid-cols-2 gap-8 md:gap-12 h-full">
+                    
+                    <!-- Image -->
+                    <div class="bg-gray-50 rounded-3xl p-6 flex items-center justify-center border border-gray-100 shadow-inner h-[300px] md:h-full relative group">
+                        <img id="modal-p-img" src="" alt="Product" class="max-w-full max-h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105">
+                    </div>
+                    
+                    <!-- Info -->
+                    <div class="flex flex-col justify-center">
+                        <div class="mb-3 flex items-center gap-2">
+                            <span id="modal-p-cat" class="text-[10px] font-bold text-brand-blue uppercase tracking-widest bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">Category</span>
+                            <div class="flex text-yellow-400 text-sm"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i></div>
+                        </div>
+                        <h2 id="modal-p-name" class="text-3xl md:text-4xl font-black mb-1 text-gray-900 tracking-tight">Name</h2>
+                        <h3 id="modal-p-urdu" class="text-xl text-brand-red font-urdu font-bold mb-6">Urdu Name</h3>
+                        
+                        <div class="flex items-end gap-3 mb-6 bg-gray-50 p-4 rounded-2xl w-fit">
+                            <span id="modal-p-price" class="text-3xl font-black price-text text-gray-900">Rs. 0</span>
+                            <span id="modal-p-old" class="text-lg text-gray-400 line-through price-text hidden">Rs. 0</span>
+                            <span id="modal-p-disc" class="bg-brand-red text-white text-xs font-bold px-2 py-1 rounded hidden shadow-sm"></span>
+                        </div>
+                        
+                        <p id="modal-p-desc" class="text-gray-600 mb-8 text-sm md:text-base leading-relaxed border-l-4 border-gray-200 pl-4">Description goes here.</p>
+                        
+                        <div class="flex items-center gap-6 mb-8">
+                            <span class="font-bold text-sm uppercase tracking-wider text-gray-500" data-en="Quantity" data-ur="مقدار">Quantity</span>
+                            <div class="flex items-center bg-gray-100 rounded-full px-2 h-12 border border-gray-200 shadow-inner">
+                                <button onclick="modQty(-1)" class="w-10 h-full text-xl hover:text-brand-blue transition font-medium">-</button>
+                                <span id="modal-p-qty" class="w-10 text-center font-black text-lg">1</span>
+                                <button onclick="modQty(1)" class="w-10 h-full text-xl hover:text-brand-blue transition font-medium">+</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-auto">
+                            <button id="btn-add-cart" class="w-full bg-gray-900 text-white py-4 rounded-full font-bold hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg transform hover:-translate-y-1">
+                                <i class="ph ph-shopping-cart text-xl"></i> <span data-en="Add to Cart" data-ur="کارٹ میں شامل کریں">Add to Cart</span>
+                            </button>
+                            <button id="btn-wa-order" class="w-full bg-green-500 text-white py-4 rounded-full font-bold hover:bg-green-600 transition-all flex items-center justify-center gap-2 shadow-lg transform hover:-translate-y-1">
+                                <i class="ph-fill ph-whatsapp-logo text-xl"></i> <span data-en="Order Now" data-ur="ابھی آرڈر کریں">Order Now</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CART SIDEBAR ================= -->
+    <div id="cart-sidebar" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onclick="toggleCart()"></div>
+        <div class="absolute top-0 right-0 h-full w-full md:w-[450px] bg-white shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full" id="cart-panel">
+            
+            <div class="p-6 border-b flex justify-between items-center bg-white">
+                <h2 class="text-2xl font-black flex items-center gap-3 tracking-tight text-gray-900"><i class="ph ph-shopping-bag"></i> <span data-en="Your Cart" data-ur="آپ کا کارٹ">Your Cart</span></h2>
+                <button onclick="toggleCart()" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition text-gray-600"><i class="ph ph-x text-lg"></i></button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar bg-gray-50" id="cart-items-container">
+                <!-- Cart items -->
+            </div>
+
+            <div class="p-6 border-t bg-white shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="text-gray-500 font-bold uppercase tracking-wider text-sm" data-en="Total Amount" data-ur="کل رقم">Total Amount</span>
+                    <span class="text-3xl font-black price-text text-gray-900" id="cart-total">Rs. 0</span>
+                </div>
+                <button onclick="orderCartOnWhatsApp()" class="w-full bg-green-500 text-white py-4.5 rounded-full font-black hover:bg-green-600 transition-all flex items-center justify-center gap-2 shadow-lg transform hover:-translate-y-1 text-lg">
+                    <i class="ph-fill ph-whatsapp-logo text-2xl"></i> <span data-en="CHECKOUT VIA WHATSAPP" data-ur="واٹس ایپ پر چیک آؤٹ کریں">CHECKOUT VIA WHATSAPP</span>
+                </button>
+                <button onclick="clearCart()" class="w-full text-center text-xs font-bold text-gray-400 mt-4 hover:text-brand-red transition uppercase tracking-widest" data-en="Empty Cart" data-ur="کارٹ خالی کریں">Empty Cart</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="md:hidden fixed bottom-0 left-0 w-full glass pb-safe border-t border-gray-200 z-40 mobile-bottom-nav shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+        <div class="flex justify-around items-center h-16 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+            <button onclick="navTo('home')" class="flex flex-col items-center gap-1 w-16 nav-mob hover:text-brand-blue transition" data-target="home">
+                <i class="ph ph-house text-2xl mb-0.5"></i> <span data-en="Home" data-ur="ہوم">Home</span>
+            </button>
+            <button onclick="navTo('shop')" class="flex flex-col items-center gap-1 w-16 nav-mob hover:text-brand-blue transition" data-target="shop">
+                <i class="ph ph-storefront text-2xl mb-0.5"></i> <span data-en="Shop" data-ur="شاپ">Shop</span>
+            </button>
+            <button onclick="toggleSearch()" class="flex flex-col items-center gap-1 w-16 hover:text-brand-blue transition">
+                <div class="w-12 h-12 bg-brand-blue text-white rounded-full flex items-center justify-center -mt-6 shadow-lg border-4 border-white"><i class="ph ph-magnifying-glass text-xl"></i></div>
+            </button>
+            <button onclick="navTo('categories')" class="flex flex-col items-center gap-1 w-16 nav-mob hover:text-brand-blue transition" data-target="categories">
+                <i class="ph ph-squares-four text-2xl mb-0.5"></i> <span data-en="Categories" data-ur="اقسام">Categories</span>
+            </button>
+            <a href="https://wa.me/923216273971" target="_blank" class="flex flex-col items-center gap-1 w-16 hover:text-green-500 transition">
+                <i class="ph-fill ph-whatsapp-logo text-2xl mb-0.5 text-green-500"></i> <span data-en="Contact" data-ur="رابطہ">Contact</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white pt-20 pb-24 md:pb-10 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-10 mb-12">
+            <div class="md:col-span-1">
+                <div class="flex items-center gap-3 mb-6">
+                   <!-- NEW LOGO LINK -->
+                   <img src="https://files.catbox.moe/ybflgc.jpg" alt="Doha Center Logo" class="w-12 h-12 object-cover rounded-full bg-white p-0.5">
+                    <span class="font-black text-2xl tracking-tighter">DOHA CENTER</span>
+                </div>
+                <p class="text-gray-400 text-sm mb-6 leading-relaxed" data-en="Providing quality household products, clothing, and furniture under one roof." data-ur="ایک ہی چھت کے نیچے اعلیٰ معیار کی خریداری۔">Providing quality household products, clothing, and furniture under one roof.</p>
+                <div class="flex gap-4">
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-blue-600 transition text-lg"><i class="ph-fill ph-facebook-logo"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-pink-600 transition text-lg"><i class="ph-fill ph-instagram-logo"></i></a>
+                    <a href="#" class="wa-link w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-green-500 transition text-lg"><i class="ph-fill ph-whatsapp-logo"></i></a>
+                </div>
+            </div>
+            
+            <div>
+                <h4 class="font-bold mb-6 uppercase text-sm tracking-widest text-gray-500" data-en="Quick Links" data-ur="اہم لنکس">Quick Links</h4>
+                <ul class="space-y-3 text-sm text-gray-300 font-medium">
+                    <li><a href="#" onclick="navTo('home')" class="hover:text-brand-blue transition">Home</a></li>
+                    <li><a href="#" onclick="navTo('shop')" class="hover:text-brand-blue transition">All Products</a></li>
+                    <li><a href="#" onclick="navTo('categories')" class="hover:text-brand-blue transition">Categories</a></li>
+                    <li><a href="#" onclick="navTo('about')" class="hover:text-brand-blue transition">About Us</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-bold mb-6 uppercase text-sm tracking-widest text-gray-500" data-en="Information" data-ur="معلومات">Information</h4>
+                <ul class="space-y-3 text-sm text-gray-300 font-medium">
+                    <li><a href="#" class="hover:text-brand-blue transition">Delivery Information</a></li>
+                    <li><a href="#" class="hover:text-brand-blue transition">Privacy Policy</a></li>
+                    <li><a href="#" class="hover:text-brand-blue transition">Terms & Conditions</a></li>
+                    <li><a href="#" class="hover:text-brand-blue transition">FAQs</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-bold mb-6 uppercase text-sm tracking-widest text-gray-500" data-en="Contact Us" data-ur="رابطہ کریں">Contact Us</h4>
+                <ul class="space-y-4 text-sm text-gray-300 font-medium">
+                    <li class="flex items-start gap-3"><i class="ph-fill ph-phone text-brand-blue text-lg"></i> 0321-6273971 <br> 0321-6421684</li>
+                    <li class="flex items-center gap-3"><i class="ph-fill ph-envelope text-brand-blue text-lg"></i> dohacenter@gmail.com</li>
+                    <li class="flex items-start gap-3"><i class="ph-fill ph-map-pin text-brand-blue text-lg"></i> Main Market, Doha Center</li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 text-center pt-8 text-sm text-gray-500 font-medium">
+            &copy; 2026 Doha Center. All Rights Reserved.
+        </div>
+    </footer>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-24 md:bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 opacity-0 pointer-events-none transition-all duration-300 translate-y-4">
+        <i class="ph-fill ph-check-circle text-green-400 text-2xl"></i>
+        <span id="toast-msg" class="font-bold text-sm">Action successful</span>
+    </div>
+
+    <!-- ================= FIREBASE MODULE SCRIPT ================= -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // Your Firebase Configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyAxv0kNe_rHAenbSJWnTEhw5q0s2jSq_lo",
+          authDomain: "doha-center.firebaseapp.com",
+          databaseURL: "https://doha-center-default-rtdb.firebaseio.com",
+          projectId: "doha-center",
+          storageBucket: "doha-center.firebasestorage.app",
+          messagingSenderId: "818788344432",
+          appId: "1:818788344432:web:acb930b0df7357e33d8ab5",
+          measurementId: "G-8EH3J82NHX"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function fetchStoreData() {
+            try {
+                document.getElementById('loader-text').innerText = "Connecting to database...";
+                
+                // Fetch Products and Categories concurrently for speed
+                const [productsSnapshot, categoriesSnapshot] = await Promise.all([
+                    getDocs(collection(db, "products")),
+                    getDocs(collection(db, "categories"))
+                ]);
+                
+                document.getElementById('loader-text').innerText = "Processing store data...";
+
+                const fetchedProducts = [];
+                productsSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    fetchedProducts.push({
+                        id: doc.id,
+                        name: data.name || "Unnamed Product",
+                        urduName: data.urduName || data.name || "",
+                        price: Number(data.price) || 0,
+                        oldPrice: data.oldPrice ? Number(data.oldPrice) : null,
+                        category: data.category || "Uncategorized",
+                        desc: data.desc || "No description available.",
+                        img: data.img || "https://via.placeholder.com/600x600?text=No+Image",
+                        tag: data.tag || null
+                    });
+                });
+                
+                const fetchedCategories = [];
+                categoriesSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    fetchedCategories.push({
+                        id: doc.id,
+                        name: data.name || "Unnamed Category",
+                        urduName: data.urduName || data.name || "",
+                        img: data.img || "https://via.placeholder.com/400x400?text=Category"
+                    });
+                });
+                
+                // Expose to global window so the UI script can use them
+                window.products = fetchedProducts;
+                window.categories = fetchedCategories;
+                
+            } catch (error) {
+                console.error("Error fetching data from Firebase: ", error);
+                document.getElementById('loader-text').innerText = "Error loading data. Showing offline mode.";
+                // Empty fallbacks so the site doesn't crash completely
+                window.products = [];
+                window.categories = [];
+            } finally {
+                // Initialize the app UI only after fetching completes
+                if(typeof window.initApp === 'function') {
+                    window.initApp();
+                }
+                
+                // Hide loader gracefully
+                const loader = document.getElementById('loader');
+                if(loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.style.display = 'none', 600);
+                }
+            }
+        }
+
+        // Run fetch on load
+        fetchStoreData();
+    </script>
+
+    <!-- ================= UI JAVASCRIPT LOGIC ================= -->
+    <script>
+        // Global variables initialized empty, populated by Firebase Module script
+        window.products = []; 
+        window.categories = [];
+        window.cart = JSON.parse(localStorage.getItem('doha_cart')) || [];
+        
+        const SHOP_CONFIG = {
+            shopName: "Doha Center",
+            whatsappNumber: "923216273971", 
+            phone1: "0321-6273971",
+            currency: "Rs. "
+        };
+
+        let currentLang = 'en';
+        let activeTempQty = 1;
+
+        // Exposed functions so HTML inline onClick handlers work properly
+        window.navTo = navTo;
+        window.toggleLang = toggleLang;
+        window.toggleSearch = toggleSearch;
+        window.filterProducts = filterProducts;
+        window.filterByCategory = filterByCategory;
+        window.openProduct = openProduct;
+        window.closeProductModal = closeProductModal;
+        window.modQty = modQty;
+        window.quickAddCart = quickAddCart;
+        window.addToCart = addToCart;
+        window.updateCartQty = updateCartQty;
+        window.removeCartItem = removeCartItem;
+        window.clearCart = clearCart;
+        window.toggleCart = toggleCart;
+        window.orderCartOnWhatsApp = orderCartOnWhatsApp;
+
+        // Triggered by the Firebase script once data is fetched successfully
+        window.initApp = function() {
+            document.getElementById('top-phone').innerText = SHOP_CONFIG.phone1;
+            document.querySelectorAll('.wa-link').forEach(el => el.href = `https://wa.me/${SHOP_CONFIG.whatsappNumber}`);
+
+            renderCategories();
+            renderFeaturedProducts();
+            renderShopProducts(window.products);
+            populateCategoryFilter();
+            updateCartCount();
+
+            initScrollEvents();
+            initAnimations();
+
+            window.addEventListener('hashchange', handleRouting);
+            handleRouting();
+        }
+
+        function navTo(viewId) {
+            window.location.hash = viewId;
+        }
+
+        function handleRouting() {
+            let hash = window.location.hash.replace('#', '') || 'home';
+            const views = document.querySelectorAll('.view-section');
+            views.forEach(v => v.classList.remove('active'));
+            
+            const targetView = document.getElementById(`view-${hash}`);
+            if(targetView) {
+                targetView.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                document.getElementById('view-home').classList.add('active');
+            }
+
+            document.querySelectorAll('.nav-mob, .nav-link').forEach(el => {
+                if(el.dataset.target === hash || el.innerText.toLowerCase() === hash) {
+                    el.classList.add('text-brand-blue');
+                } else {
+                    el.classList.remove('text-brand-blue');
+                }
+            });
+            
+            setTimeout(() => ScrollTrigger.refresh(), 200);
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'en' ? 'ur' : 'en';
+            const btn = document.getElementById('lang-toggle');
+            
+            if(currentLang === 'ur') {
+                document.body.setAttribute('dir', 'rtl');
+                btn.innerText = 'EN';
+            } else {
+                document.body.setAttribute('dir', 'ltr');
+                btn.innerText = 'اردو';
+            }
+
+            document.querySelectorAll('[data-en]').forEach(el => {
+                el.innerText = el.getAttribute(`data-${currentLang}`);
+            });
+
+            renderCategories();
+            renderFeaturedProducts();
+            filterProducts(); 
+            renderCart();
+        }
+
+        function t(enStr, urStr) { return currentLang === 'en' ? enStr : urStr; }
+        function formatPrice(price) { return `${SHOP_CONFIG.currency}${price.toLocaleString()}`; }
+
+        function createProductCard(p) {
+            const name = t(p.name, p.urduName);
+            const tagHtml = p.tag ? `<span class="absolute top-3 left-3 bg-brand-red text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm z-10">${p.tag}</span>` : '';
+            const oldPriceHtml = p.oldPrice ? `<span class="text-xs text-gray-400 line-through price-text">${formatPrice(p.oldPrice)}</span>` : '';
+            
+            const stars = Array(5).fill('<i class="ph-fill ph-star"></i>').join('');
+
+            return `
+                <div class="glass-card rounded-2xl overflow-hidden group flex flex-col h-full bg-white product-card">
+                    <div class="relative h-48 md:h-56 bg-gray-50 flex items-center justify-center p-6 product-img-wrap cursor-pointer" onclick="openProduct('${p.id}')">
+                        ${tagHtml}
+                        <img src="${p.img}" alt="${name}" class="max-w-full max-h-full object-contain mix-blend-multiply drop-shadow-md">
+                        <button onclick="event.stopPropagation(); quickAddCart('${p.id}')" class="hidden md:flex quick-add-btn bg-brand-blue text-white w-10 h-10 rounded-full items-center justify-center shadow-lg hover:bg-brand-blueDark transition">
+                            <i class="ph ph-plus text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="p-5 flex flex-col flex-1 border-t border-gray-100">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider line-clamp-1">${p.category}</span>
+                            <div class="flex text-yellow-400 text-[10px] shrink-0">${stars}</div>
+                        </div>
+                        <h3 class="font-bold text-sm md:text-base text-gray-800 leading-tight mb-3 cursor-pointer hover:text-brand-blue line-clamp-2 transition" onclick="openProduct('${p.id}')">${name}</h3>
+                        <div class="mt-auto">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="font-black text-lg text-gray-900 price-text">${formatPrice(p.price)}</span>
+                                ${oldPriceHtml}
+                            </div>
+                            <button onclick="quickAddCart('${p.id}')" class="w-full bg-gray-100 text-gray-800 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-200 transition flex justify-center items-center gap-2">
+                                <i class="ph ph-shopping-cart text-lg"></i> <span data-en="Add" data-ur="شامل کریں">Add</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFeaturedProducts() {
+            const grid = document.getElementById('featured-products-grid');
+            if(grid) {
+                if(window.products.length === 0) {
+                    grid.innerHTML = `<div class="col-span-full py-10 text-center text-gray-500">${t('No trending products available.', 'کوئی مقبول مصنوعات دستیاب نہیں ہیں۔')}</div>`;
+                } else {
+                    grid.innerHTML = window.products.slice(0, 8).map(createProductCard).join('');
+                }
+            }
+        }
+
+        function renderShopProducts(prodArray) {
+            const grid = document.getElementById('main-shop-grid');
+            if(!grid) return;
+            document.getElementById('shop-results-count').innerText = `${t('Showing', 'دکھا رہے ہیں')} ${prodArray.length} ${t('results', 'نتائج')}`;
+            
+            if(prodArray.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-20 text-center text-gray-500 font-medium">${t('No products found.', 'کوئی مصنوعات نہیں ملیں۔')}</div>`;
+                return;
+            }
+            grid.innerHTML = prodArray.map(createProductCard).join('');
+            
+            ScrollTrigger.refresh();
+            gsap.from(".product-card", {
+                y: 30, opacity: 0, duration: 0.5, stagger: 0.05, ease: "power2.out", clearProps: "all"
+            });
+        }
+
+        function renderCategories() {
+            const homeGrid = document.getElementById('home-categories-grid');
+            const fullGrid = document.getElementById('full-categories-grid');
+            
+            if(window.categories.length === 0) {
+                const emptyMsg = `<div class="w-full py-10 text-center text-gray-500">${t('No categories found.', 'کوئی اقسام نہیں ملیں۔')}</div>`;
+                if(homeGrid) homeGrid.innerHTML = emptyMsg;
+                if(fullGrid) fullGrid.innerHTML = emptyMsg;
+                return;
+            }
+
+            let html = window.categories.map(c => `
+                <div class="shrink-0 w-32 md:w-auto glass-card bg-white rounded-3xl p-5 flex flex-col items-center justify-center cursor-pointer group hover:border-brand-blue/30" onclick="filterByCategory('${c.name.replace(/'/g, "\\'")}')">
+                    <div class="w-16 h-16 rounded-full bg-blue-50 mb-4 flex items-center justify-center p-3 overflow-hidden group-hover:bg-blue-100 group-hover:scale-110 transition-all duration-300">
+                        <img src="${c.img}" alt="${c.name}" class="w-full h-full object-cover rounded-full shadow-sm">
+                    </div>
+                    <span class="text-xs font-bold text-center text-gray-700 group-hover:text-brand-blue transition">${t(c.name, c.urduName)}</span>
+                </div>
+            `).join('');
+            
+            if(homeGrid) homeGrid.innerHTML = html;
+            if(fullGrid) fullGrid.innerHTML = html;
+        }
+
+        function populateCategoryFilter() {
+            const select = document.getElementById('filter-category');
+            if(!select) return;
+            // Keep the default "All" option, and append dynamic categories
+            select.innerHTML = `<option value="all" data-en="All Categories" data-ur="تمام اقسام">${t('All Categories', 'تمام اقسام')}</option>`;
+            window.categories.forEach(c => {
+                select.innerHTML += `<option value="${c.name}">${t(c.name, c.urduName)}</option>`;
+            });
+        }
+
+        let searchVisible = false;
+        function toggleSearch() {
+            const sb = document.getElementById('search-bar');
+            searchVisible = !searchVisible;
+            if(searchVisible) {
+                sb.classList.remove('hidden');
+                setTimeout(() => { sb.classList.remove('scale-y-0'); document.getElementById('searchInput').focus(); }, 10);
+            } else {
+                sb.classList.add('hidden');
+            }
+        }
+
+        const sInput = document.getElementById('searchInput');
+        if(sInput) {
+            sInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                if(term.length > 0) {
+                    navTo('shop');
+                    const filtered = window.products.filter(p => 
+                        p.name.toLowerCase().includes(term) || 
+                        p.urduName.includes(term) || 
+                        p.category.toLowerCase().includes(term)
+                    );
+                    renderShopProducts(filtered);
+                } else {
+                    filterProducts(); 
+                }
+            });
+        }
+
+        function filterProducts() {
+            const cat = document.getElementById('filter-category').value;
+            const sort = document.getElementById('sort-products').value;
+            let filtered = [...window.products];
+
+            if(cat !== 'all') filtered = filtered.filter(p => p.category === cat);
+            if(sort === 'price-low') filtered.sort((a,b) => a.price - b.price);
+            if(sort === 'price-high') filtered.sort((a,b) => b.price - a.price);
+
+            renderShopProducts(filtered);
+        }
+
+        function filterByCategory(catName) {
+            navTo('shop');
+            setTimeout(() => {
+                document.getElementById('filter-category').value = catName;
+                filterProducts();
+            }, 100);
+        }
+
+        function openProduct(id) {
+            const p = window.products.find(x => x.id === id);
+            if(!p) return;
+            activeTempQty = 1;
+
+            const categoryObj = window.categories.find(c => c.name === p.category);
+            const categoryUrdu = categoryObj ? categoryObj.urduName : p.category;
+
+            document.getElementById('modal-p-img').src = p.img;
+            document.getElementById('modal-p-cat').innerText = t(p.category, categoryUrdu);
+            document.getElementById('modal-p-name').innerText = p.name;
+            document.getElementById('modal-p-urdu').innerText = p.urduName;
+            document.getElementById('modal-p-price').innerText = formatPrice(p.price);
+            document.getElementById('modal-p-desc').innerText = p.desc;
+            document.getElementById('modal-p-qty').innerText = activeTempQty;
+
+            const oldEl = document.getElementById('modal-p-old');
+            const discEl = document.getElementById('modal-p-disc');
+            if(p.oldPrice && p.oldPrice > p.price) {
+                oldEl.innerText = formatPrice(p.oldPrice);
+                oldEl.classList.remove('hidden');
+                if(p.tag) { discEl.innerText = p.tag; discEl.classList.remove('hidden'); }
+            } else {
+                oldEl.classList.add('hidden');
+                discEl.classList.add('hidden');
+            }
+
+            document.getElementById('btn-add-cart').onclick = () => { addToCart(p.id, activeTempQty); closeProductModal(); };
+            document.getElementById('btn-wa-order').onclick = () => { orderProductWA(p, activeTempQty); };
+
+            const modal = document.getElementById('product-modal');
+            const content = document.getElementById('product-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => content.classList.remove('translate-y-full'), 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProductModal() {
+            const modal = document.getElementById('product-modal');
+            const content = document.getElementById('product-modal-content');
+            content.classList.add('translate-y-full');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        function modQty(change) {
+            activeTempQty = Math.max(1, activeTempQty + change);
+            document.getElementById('modal-p-qty').innerText = activeTempQty;
+        }
+
+        function quickAddCart(id) { addToCart(id, 1); }
+
+        function addToCart(id, qty) {
+            const p = window.products.find(x => x.id === id);
+            if(!p) return;
+
+            const existing = window.cart.find(x => x.id === id);
+            
+            if(existing) existing.qty += qty;
+            else window.cart.push({ ...p, qty: qty });
+            
+            saveCart();
+            showToast(t('Added to Cart', 'کارٹ میں شامل کر دیا گیا'));
+        }
+
+        function updateCartQty(id, change) {
+            const item = window.cart.find(x => x.id === id);
+            if(item) {
+                item.qty += change;
+                if(item.qty < 1) window.cart = window.cart.filter(x => x.id !== id);
+                saveCart();
+                renderCart();
+            }
+        }
+
+        function removeCartItem(id) {
+            window.cart = window.cart.filter(x => x.id !== id);
+            saveCart();
+            renderCart();
+        }
+
+        function clearCart() {
+            window.cart = [];
+            saveCart();
+            renderCart();
+        }
+
+        function saveCart() {
+            localStorage.setItem('doha_cart', JSON.stringify(window.cart));
+            updateCartCount();
+        }
+
+        function updateCartCount() {
+            const count = window.cart.reduce((sum, item) => sum + item.qty, 0);
+            const badge = document.getElementById('cart-count');
+            badge.innerText = count;
+            
+            badge.classList.add('scale-125', 'bg-brand-red');
+            setTimeout(() => badge.classList.remove('scale-125', 'bg-brand-red'), 200);
+        }
+
+        let cartVisible = false;
+        function toggleCart() {
+            const sidebar = document.getElementById('cart-sidebar');
+            const panel = document.getElementById('cart-panel');
+            cartVisible = !cartVisible;
+            
+            if(cartVisible) {
+                renderCart();
+                sidebar.classList.remove('hidden');
+                setTimeout(() => panel.classList.remove('translate-x-full'), 10);
+                document.body.style.overflow = 'hidden';
+            } else {
+                panel.classList.add('translate-x-full');
+                setTimeout(() => {
+                    sidebar.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                }, 300);
+            }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            let total = 0;
+
+            if(window.cart.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-400 py-20 flex flex-col items-center"><i class="ph ph-shopping-cart text-6xl mb-4 text-gray-200"></i> <p class="font-medium">${t('Your cart is empty', 'آپ کا کارٹ خالی ہے')}</p><button onclick="toggleCart(); navTo('shop')" class="mt-6 text-brand-blue font-bold underline">Start Shopping</button></div>`;
+                document.getElementById('cart-total').innerText = formatPrice(0);
+                return;
+            }
+
+            container.innerHTML = window.cart.map(item => {
+                total += item.price * item.qty;
+                return `
+                    <div class="flex gap-4 border-b border-gray-100 pb-6 bg-white p-4 rounded-2xl shadow-sm">
+                        <div class="w-24 h-24 bg-gray-50 rounded-xl p-2 shrink-0 border border-gray-100"><img src="${item.img}" class="w-full h-full object-contain mix-blend-multiply"></div>
+                        <div class="flex-1 flex flex-col justify-between">
+                            <div class="flex justify-between items-start gap-2">
+                                <h4 class="font-bold text-sm text-gray-800 line-clamp-2">${t(item.name, item.urduName)}</h4>
+                                <button onclick="removeCartItem('${item.id}')" class="text-gray-300 hover:text-red-500 transition shrink-0"><i class="ph-fill ph-trash text-lg"></i></button>
+                            </div>
+                            <span class="text-brand-blue font-black text-lg price-text">${formatPrice(item.price)}</span>
+                            <div class="flex items-center gap-4 mt-2 bg-gray-50 border border-gray-200 w-fit rounded-full px-1 py-1">
+                                <button onclick="updateCartQty('${item.id}', -1)" class="w-8 h-8 flex items-center justify-center hover:bg-white rounded-full transition shadow-sm">-</button>
+                                <span class="text-sm font-black w-4 text-center">${item.qty}</span>
+                                <button onclick="updateCartQty('${item.id}', 1)" class="w-8 h-8 flex items-center justify-center hover:bg-white rounded-full transition shadow-sm">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('cart-total').innerText = formatPrice(total);
+        }
+
+        function generateWAUrl(text) { return `https://wa.me/${SHOP_CONFIG.whatsappNumber}?text=${encodeURIComponent(text)}`; }
+
+        function orderProductWA(p, qty) {
+            let msg = `*New Order from ${SHOP_CONFIG.shopName}*\n\n`;
+            msg += `🛒 *Item:* ${p.name}\n`;
+            msg += `💰 *Price:* ${formatPrice(p.price)}\n`;
+            msg += `📦 *Quantity:* ${qty}\n`;
+            msg += `🧾 *Total:* ${formatPrice(p.price * qty)}\n\n`;
+            msg += `Please confirm my order.`;
+            window.open(generateWAUrl(msg), '_blank');
+        }
+
+        function orderCartOnWhatsApp() {
+            if(window.cart.length === 0) return;
+            let total = 0;
+            let msg = `*New Cart Order from ${SHOP_CONFIG.shopName}*\n\n`;
+            
+            window.cart.forEach((item, index) => {
+                total += item.price * item.qty;
+                msg += `${index+1}. *${item.name}*\n   Qty: ${item.qty} x ${formatPrice(item.price)} = ${formatPrice(item.price * item.qty)}\n\n`;
+            });
+            
+            msg += `===================\n`;
+            msg += `*GRAND TOTAL: ${formatPrice(total)}*\n`;
+            msg += `===================\n\n`;
+            msg += `Please confirm my order and share delivery details.`;
+            
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#0099cc', '#cc0000', '#ffffff', '#ffd700'] });
+
+            setTimeout(() => {
+                window.open(generateWAUrl(msg), '_blank');
+                clearCart();
+                toggleCart();
+            }, 1000);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+            setTimeout(() => toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4'), 3000);
+        }
+
+        // Scrolling Events & GSAP
+        function initScrollEvents() {
+            const header = document.getElementById('main-header');
+            const toTopBtn = document.getElementById('scrollToTop');
+            
+            window.addEventListener('scroll', () => {
+                if(window.scrollY > 50) {
+                    header.classList.add('scrolled', 'bg-white/95');
+                    toTopBtn.classList.remove('opacity-0', 'translate-y-20');
+                } else {
+                    header.classList.remove('scrolled', 'bg-white/95');
+                    toTopBtn.classList.add('opacity-0', 'translate-y-20');
+                }
+            });
+        }
+
+        function initAnimations() {
+            gsap.registerPlugin(ScrollTrigger);
+            
+            const fadeUps = document.querySelectorAll('[data-gsap="fade-up"]');
+            fadeUps.forEach(el => {
+                const delay = el.getAttribute('data-delay') || 0;
+                gsap.from(el, {
+                    scrollTrigger: { trigger: el, start: "top 85%" },
+                    y: 40, opacity: 0, duration: 0.8, ease: "power3.out", delay: parseFloat(delay)
+                });
+            });
+        }
+    </script>
+</body>
+</html>
